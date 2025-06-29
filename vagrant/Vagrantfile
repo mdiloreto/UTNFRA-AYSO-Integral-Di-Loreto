@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
     vm.vm.disk :disk, size: "5GB", name: "data5G"
     vm.vm.disk :disk, size: "3GB", name: "data3G"
     vm.vm.disk :disk, size: "2GB", name: "data2G"
-
+  
     vm.vm.provision "ansible_local" do |ansible|
       ansible.playbook    = "/proyecto/playbooks/deploy.yml"
       ansible.install     = true
