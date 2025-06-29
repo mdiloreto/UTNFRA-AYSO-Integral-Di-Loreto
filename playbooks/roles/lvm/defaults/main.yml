@@ -1,0 +1,10 @@
+vg_name:       vg_datos
+vg_swap_name:  vg_temp
+# discos que forman cada VG
+pv_datos_disks:
+  - /dev/sdb        # 5 GB
+  - /dev/sdd        # 2 GB
+pv_swap_disk:  /dev/sdc        # 3 GB
+
+docker_lv_size: 10m
+work_lv_size:   2.5g
