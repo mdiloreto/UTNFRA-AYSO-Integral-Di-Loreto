@@ -28,5 +28,3 @@
     user: vagrant
     manage_dir: yes
     key: "{{ lookup('file', '/home/vagrant/.ssh/id_rsa.pub') }}"
-  delegate_to: "{{ item }}"
-  loop: "{{ groups['all'] }}"

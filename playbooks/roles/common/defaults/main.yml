@@ -4,5 +4,5 @@ base_packages:
   - tree
 
 hosts_entries:
-  - "192.168.56.11 vm1-grupo-xxxx"
-  - "192.168.56.12 vm2-grupo-xxxx"
+  - "192.168.56.11 vm1-grupo-diloreto"
+  - "192.168.56.12 vm2-grupo-diloreto"

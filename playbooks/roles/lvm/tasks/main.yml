@@ -1,30 +1,83 @@
-# Crear Volume Group (usa /dev/sdb /dev/sdc /dev/sdd)
-- lvg:
+---
+#  1) VG 
+- name: Crear VG de datos ({{ pv_datos_disks | join(' + ') }})
+  lvg:
     vg: "{{ vg_name }}"
-    pvs:
-      - /dev/sdb
-      - /dev/sdc
-      - /dev/sdd
+    pvs: "{{ pv_datos_disks }}"
 
-# LV para Docker
-- lvol:
+#  recoger facts LVM una vez 
+- name: facts de LVM
+  ansible.builtin.setup:
+    gather_subset: [all]
+
+#  2) LV docker 
+- name: Crear LV docker
+  lvol:
     vg: "{{ vg_name }}"
     lv: lv_docker
     size: "{{ docker_lv_size }}"
-    filesystem: ext4
-    mount: /var/lib/docker
-    resizefs: yes
+  when: "'lv_docker' not in ansible_lvm.lvs"
 
-# LV para /work
-- lvol:
+- name: Comprobar si lv_docker ya tiene filesystem
+  ansible.builtin.command: lsblk -no FSTYPE /dev/{{ vg_name }}/lv_docker
+  register: docker_fs
+  changed_when: false
+
+- name: Formatear lv_docker en ext4
+  ansible.builtin.command: mkfs.ext4 -F /dev/{{ vg_name }}/lv_docker
+  when: docker_fs.stdout == ""
+
+- name: Montar /var/lib/docker y añadir a fstab
+  ansible.builtin.mount:
+    path: /var/lib/docker
+    src: "/dev/{{ vg_name }}/lv_docker"
+    fstype: ext4
+    state: mounted
+
+#  3) LV work
+- name: Crear LV work
+  lvol:
     vg: "{{ vg_name }}"
     lv: lv_work
     size: "{{ work_lv_size }}"
-    filesystem: ext4
-    mount: /work
-    resizefs: yes
+  when: "'lv_work' not in ansible_lvm.lvs"
 
-# Swap en /dev/sdd
-- swapfile:
-    path: "{{ swap_device }}"
-    state: present
+- name: Comprobar si lv_work ya tiene filesystem
+  ansible.builtin.command: lsblk -no FSTYPE /dev/{{ vg_name }}/lv_work
+  register: work_fs
+  changed_when: false
+
+- name: Formatear lv_work en ext4 (solo si falta)
+  ansible.builtin.command: mkfs.ext4 -F /dev/{{ vg_name }}/lv_work
+  when: work_fs.stdout == ""
+
+- name: Montar /work y añadir a fstab
+  ansible.builtin.mount:
+    path: /work
+    src: "/dev/{{ vg_name }}/lv_work"
+    fstype: ext4
+    state: mounted
+
+# VG / LV swap: 
+- name: Crear VG de swap
+  lvg:
+    vg:  "{{ vg_swap_name }}"
+    pvs: [ "{{ pv_swap_disk }}" ]
+  register: vg_swap_created
+
+- name: Refrescar facts LVM
+  setup:
+    gather_subset: [all]
+  when: vg_swap_created is changed
+
+- name: Crear LV lv_swap 2,5 GB
+  lvol:
+    vg:   "{{ vg_swap_name }}"
+    lv:   lv_swap
+    size: 2.5g
+  when: "'lv_swap' not in ansible_lvm.lvs"
+
+- name: Formatear y activar swap
+  ansible.builtin.shell: | 
+    swapon  /dev/sdd
+    echo "/dev/sdd none swap sw 0 0" >> /etc/fstab
