@@ -1,0 +1,32 @@
+# Instalar paquetes base
+- package:
+    name: "{{ base_packages }}"
+    state: present
+
+# Agregar líneas a /etc/hosts
+- lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+    state: present
+  loop: "{{ hosts_entries }}"
+
+# Sudo sin contraseña para vagrant
+- copy:
+    dest: /etc/sudoers.d/99-vagrant
+    content: "%vagrant ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+
+# Generar clave SSH si falta
+- user:
+    name: vagrant
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
+# Cruzar claves entre nodos
+- authorized_key:
+    user: vagrant
+    manage_dir: yes
+    key: "{{ lookup('file', '/home/vagrant/.ssh/id_rsa.pub') }}"
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['all'] }}"

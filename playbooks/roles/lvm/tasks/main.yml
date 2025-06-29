@@ -1,0 +1,30 @@
+# Crear Volume Group (usa /dev/sdb /dev/sdc /dev/sdd)
+- lvg:
+    vg: "{{ vg_name }}"
+    pvs:
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/sdd
+
+# LV para Docker
+- lvol:
+    vg: "{{ vg_name }}"
+    lv: lv_docker
+    size: "{{ docker_lv_size }}"
+    filesystem: ext4
+    mount: /var/lib/docker
+    resizefs: yes
+
+# LV para /work
+- lvol:
+    vg: "{{ vg_name }}"
+    lv: lv_work
+    size: "{{ work_lv_size }}"
+    filesystem: ext4
+    mount: /work
+    resizefs: yes
+
+# Swap en /dev/sdd
+- swapfile:
+    path: "{{ swap_device }}"
+    state: present

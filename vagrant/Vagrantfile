@@ -1,0 +1,61 @@
+Vagrant.configure("2") do |config|
+  RAM   = 2048
+  CPUS  = 2
+  DISKS = %w[5GB 3GB 2GB 1GB]        # plugin vagrant-disksize
+
+  # ---------- VM1 · Ubuntu (testing) ----------
+  config.vm.define "VM1-Grupo-XXXX" do |vm|
+    vm.vm.box      = "ubuntu/jammy64"
+    vm.vm.hostname = "vm1-grupo-xxxx"
+    vm.vm.network  "private_network", ip: "192.168.56.11"
+
+    vm.vm.provider "virtualbox" do |vb|
+      vb.memory = RAM
+      vb.cpus   = CPUS
+    end
+
+    DISKS.each { |s| vm.disksize.size = s }
+
+    # --- Aprovisionamiento ---
+    ## 1) Con Ansible (activo)
+    vm.vm.provision "ansible_local",
+                    playbook: "/vagrant/ansible/site.yml",
+                    install:  true
+
+    ## 2) Con scripts Bash (COMENTADO – queda de backup)
+=begin
+    %w[base_setup.sh hosts.sh ssh-cross.sh add_disks.sh lvm.sh].each do |s|
+      vm.vm.provision "shell",
+                      path: "/vagrant/vagrant/scripts/#{s}",
+                      privileged: true
+    end
+=end
+  end
+
+  # ---------- VM2 · Fedora (producción) ----------
+  config.vm.define "VM2-Grupo-XXXX" do |vm|
+    vm.vm.box      = "fedora/39-cloud-base"
+    vm.vm.hostname = "vm2-grupo-xxxx"
+    vm.vm.network  "private_network", ip: "192.168.56.12"
+
+    vm.vm.provider "virtualbox" do |vb|
+      vb.memory = RAM
+      vb.cpus   = CPUS
+    end
+
+    DISKS.each { |s| vm.disksize.size = s }
+
+    # --- Aprovisionamiento ---
+    vm.vm.provision "ansible_local",
+                    playbook: "/vagrant/ansible/site.yml",
+                    install:  true
+
+=begin
+    %w[base_setup.sh hosts.sh ssh-cross.sh add_disks.sh lvm.sh].each do |s|
+      vm.vm.provision "shell",
+                      path: "/vagrant/vagrant/scripts/#{s}",
+                      privileged: true
+    end
+=end
+  end
+end
