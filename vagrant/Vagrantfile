@@ -2,11 +2,11 @@ Vagrant.configure("2") do |config|
   RAM  = 1024
   CPUS = 1
 
-  # Carpeta compartida por rsync (válido en WSL)
-  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__auto: true
+  # ⇨ Carpeta raíz del proyecto compartida para todas las VMs
+  config.vm.synced_folder "..", "/proyecto", create: true
 
   #  VM1 · Ubuntu 
-  config.vm.define "VM1-Grupo-Diloreto" do |vm|
+  config.vm.define "VM1-Grupo-diloreto" do |vm|
     vm.vm.box      = "ubuntu/jammy64"
     vm.vm.hostname = "vm1-grupo-diloreto"
     vm.vm.network  "private_network", ip: "192.168.56.11"
@@ -14,23 +14,22 @@ Vagrant.configure("2") do |config|
     vm.vm.provider "virtualbox" do |vb|
       vb.memory = RAM
       vb.cpus   = CPUS
-      vb.gui    = true 
-      vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
-
+      vb.linked_clone = true
+      vb.gui = false
     end
 
     vm.vm.disk :disk, size: "5GB", name: "data5G"
     vm.vm.disk :disk, size: "3GB", name: "data3G"
     vm.vm.disk :disk, size: "2GB", name: "data2G"
-    vm.vm.disk :disk, size: "1GB", name: "data1G"
 
-    vm.vm.provision "ansible_local",
-                    playbook: "/vagrant/ansible/deploy.yml",
-                    install:  true
-  end  
+    vm.vm.provision "ansible_local" do |ansible|
+      ansible.playbook    = "/proyecto/playbooks/deploy.yml"
+      ansible.install     = true
+    end
+  end
 
-  #  VM2 · Fedora 
-  config.vm.define "VM2-Grupo-Diloreto" do |vm|
+  #  VM2 · Fedora Diloreto
+  config.vm.define "VM2-Grupo-diloreto" do |vm|
     vm.vm.box      = "fedora/39-cloud-base"
     vm.vm.hostname = "vm2-grupo-diloreto"
     vm.vm.network  "private_network", ip: "192.168.56.12"
@@ -38,18 +37,17 @@ Vagrant.configure("2") do |config|
     vm.vm.provider "virtualbox" do |vb|
       vb.memory = RAM
       vb.cpus   = CPUS
-      vb.gui    = true 
-      vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"] # para correrlo en WSL 
-
+      vb.linked_clone = true
+      vb.gui = false
     end
 
     vm.vm.disk :disk, size: "5GB", name: "data5G"
     vm.vm.disk :disk, size: "3GB", name: "data3G"
     vm.vm.disk :disk, size: "2GB", name: "data2G"
-    vm.vm.disk :disk, size: "1GB", name: "data1G"
 
-    vm.vm.provision "ansible_local",
-                    playbook: "/vagrant/ansible/deploy.yml",
-                    install:  true
-  end 
-end    
+    vm.vm.provision "ansible_local" do |ansible|
+      ansible.playbook    = "/proyecto/playbooks/deploy.yml"
+      ansible.install     = true
+    end
+  end  
+end     
