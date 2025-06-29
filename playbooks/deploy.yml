@@ -1,0 +1,6 @@
+- name: TP – Aprovisionamiento mínimo
+  hosts: all
+  become: true
+  roles:
+    - common
+    - lvm
