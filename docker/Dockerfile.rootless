@@ -1,0 +1,27 @@
+FROM nginx:alpine-slim
+
+#    'addgroup' creates a group.
+#    'adduser' creates a user.
+#    -D flag creates a system user without a password.
+#    -G assigns the user to a group.
+RUN addgroup nginxuser && \
+    adduser -G nginxuser -D -s /sbin/nologin nginxuser
+
+RUN sed -i 's/listen       80;/listen       8080;/g' /etc/nginx/conf.d/default.conf && \
+    sed -i '/user  nginx;/d' /etc/nginx/nginx.conf && \
+    sed -i 's#pid        /var/run/nginx.pid;#pid        /tmp/nginx.pid;#g' /etc/nginx/nginx.conf
+
+RUN chown -R nginxuser:nginxuser /var/cache/nginx \
+    && chown -R nginxuser:nginxuser /var/log/nginx \
+    && chown -R nginxuser:nginxuser /etc/nginx/conf.d \
+    && touch /var/run/nginx.pid \
+    && chown -R nginxuser:nginxuser /var/run/nginx.pid
+
+
+COPY --chown=nginxuser:nginxuser docker/web/ /usr/share/nginx/html/
+
+USER nginxuser
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

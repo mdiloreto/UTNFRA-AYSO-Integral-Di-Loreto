@@ -1,0 +1,6 @@
+# Configuración por defecto del servidor web
+nginx_image: "mateoadiloreto/nginx:rootless"
+nginx_server_count: 1
+network: "app_net"
+# Ruta donde se despliega la aplicación
+project_src_path: "/app"

@@ -1,0 +1,11 @@
+services:
+  nginx:
+    image: {{ nginx_image }}
+    volumes:
+      - {{ project_src_path }}/file/:/usr/share/nginx/html/file/:ro
+    ports:
+      - "8080:8080"
+
+    deploy:
+      replicas: {{ nginx_server_count }}
+
