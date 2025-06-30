@@ -25,15 +25,6 @@
           - docker-compose.yml
         state: present
 
-    - name: Forzar symlink del plugin compose en Fedora
-      ansible.builtin.shell: |
-        sudo mkdir -p /usr/local/libexec/docker/cli-plugins/
-        sudo ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
-      args:
-        warn: false
-      when: ansible_os_family == "RedHat"
-      ignore_errors: true
-
     - name: Verificar que docker compose funcione
       ansible.builtin.shell: docker compose version
       register: compose_check
