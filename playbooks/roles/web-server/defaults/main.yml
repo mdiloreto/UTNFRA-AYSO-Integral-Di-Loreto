@@ -1,5 +1,3 @@
-# defaults/main.yml
-
 # Configuración por defecto del servidor web
 nginx_image: "mateoadiloreto/nginx:rootless"
 nginx_server_count: 1
