@@ -2,10 +2,10 @@ Vagrant.configure("2") do |config|
   RAM  = 1024
   CPUS = 1
 
-  # ⇨ Carpeta raíz del proyecto compartida para todas las VMs
+  # Carpeta raíz del proyecto compartida para todas las VMs
   config.vm.synced_folder "..", "/proyecto", create: true
 
-  #  VM1 · Ubuntu 
+  # VM1 - Ubuntu 
   config.vm.define "VM1-Grupo-diloreto" do |vm|
     vm.vm.box      = "ubuntu/jammy64"
     vm.vm.hostname = "vm1-grupo-diloreto"
@@ -28,7 +28,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  #  VM2 · Fedora Diloreto
+  # VM2 - Fedora Diloreto
   config.vm.define "VM2-Grupo-diloreto" do |vm|
     vm.vm.box      = "fedora/39-cloud-base"
     vm.vm.hostname = "vm2-grupo-diloreto"

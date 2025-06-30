@@ -1,0 +1,103 @@
+- name: Instalar colección community.docker
+  ansible.builtin.command: ansible-galaxy collection install community.docker
+
+- name: Instalar Docker en Ubuntu
+  script: "{{ playbook_dir }}/roles/web-server/files/install-docker-ubuntu.sh"
+  when: ansible_os_family == "Debian"
+
+- name: Instalar dnf-plugins-core en Fedora
+  ansible.builtin.package:
+    name: dnf-plugins-core
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Agregar repo oficial de Docker en Fedora
+  ansible.builtin.shell: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+  when: ansible_os_family == "RedHat"
+
+- name: Instalar Docker y plugin Compose en Fedora (repo oficial)
+  ansible.builtin.shell: |
+    sudo dnf remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-selinux \
+                  docker-engine-selinux \
+                  docker-engine
+    sudo dnf -y install dnf-plugins-core
+    sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+    sudo systemctl enable --now docker
+    sudo usermod -aG docker vagrant
+    sudo systemctl restart docker
+  when: ansible_os_family == "RedHat"
+
+- name: Crear directorio /etc/docker si no existe (Fedora)
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_os_family == "RedHat"
+
+- name: Reiniciar Docker en Fedora
+  ansible.builtin.shell: systemctl restart docker
+  when: ansible_os_family == "RedHat"
+
+- name: Verificar que docker compose funcione
+  command: docker-compose version
+  register: compose_check
+  ignore_errors: true
+
+- name: Mostrar error si docker compose no está disponible
+  debug:
+    msg: "El plugin docker compose no está disponible correctamente en Fedora"
+  when: compose_check.rc != 0
+
+- name: Arrancar y habilitar servicio Docker (Fedora)
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Agregar usuario vagrant al grupo docker (Fedora)
+  user:
+    name: vagrant
+    groups: docker
+    append: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Crear red de Docker
+  community.docker.docker_network:
+    name: "{{ network }}"
+    state: present
+
+- name: Asegurar que existe el directorio de despliegue
+  file:
+    path: "{{ project_src_path }}/"
+    state: directory
+    mode: '0755'
+
+- name: Asegurar que existe el directorio nginx
+  file:
+    path: "{{ project_src_path }}/nginx"
+    state: directory
+    mode: '0755'
+
+- name: Copiar contenido web al directorio de despliegue
+  copy:
+    src: "{{ playbook_dir }}/../docker/web/"
+    dest: "{{ project_src_path }}/file/"
+    mode: '0644'
+
+- name: Generar docker-compose.yml para Nginx
+  template:
+    src: "{{ playbook_dir }}/roles/web-server/templates/docker-compose.yml.j2"
+    dest: "{{ project_src_path }}/nginx/docker-compose.yml"

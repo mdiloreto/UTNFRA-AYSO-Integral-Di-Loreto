@@ -4,4 +4,4 @@ services:
     ports:
       - "80:8080"
     volumes:
-      - ./web/file/:/usr/share/nginx/html/file/:ro
+      - ./web/:/usr/share/nginx/html/file/:ro

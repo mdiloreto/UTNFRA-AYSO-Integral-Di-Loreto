@@ -1,3 +1,4 @@
+# Paquetes base que se instalan en todas las máquinas
 base_packages:
   - git
   - curl
@@ -6,6 +7,7 @@ base_packages:
   - tmux
   - speedtest-cli
 
+# Entradas para agregar al archivo /etc/hosts
 hosts_entries:
   - "192.168.56.11 vm1-grupo-diloreto"
   - "192.168.56.12 vm2-grupo-diloreto"

@@ -1,16 +1,16 @@
 ---
-#  1) VG 
+# Crear grupo de volúmenes de datos ({{ pv_datos_disks | join(' + ') }})
 - name: Crear VG de datos ({{ pv_datos_disks | join(' + ') }})
   lvg:
     vg: "{{ vg_name }}"
     pvs: "{{ pv_datos_disks }}"
 
-#  recoger facts LVM una vez 
+# Recoger facts de LVM una vez 
 - name: facts de LVM
   ansible.builtin.setup:
     gather_subset: [all]
 
-#  2) LV docker 
+# Crear volumen lógico para Docker
 - name: Crear LV docker
   lvol:
     vg: "{{ vg_name }}"
@@ -34,7 +34,7 @@
     fstype: ext4
     state: mounted
 
-#  3) LV work
+# Crear volumen lógico para trabajo
 - name: Crear LV work
   lvol:
     vg: "{{ vg_name }}"
@@ -58,7 +58,7 @@
     fstype: ext4
     state: mounted
 
-# VG / LV swap: 
+# Grupo de volúmenes y volumen lógico para swap
 - name: Crear VG de swap
   lvg:
     vg:  "{{ vg_swap_name }}"
