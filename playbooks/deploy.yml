@@ -13,6 +13,11 @@
     project_src_path: "/app"
   tasks:
 
+    - name: Setear seguridad para Fedora
+      ansible.builtin.shell: |
+        sudo setenforce 0
+      when: ansible_os_family == "RedHat"
+
     - name: Levantar servicios de Docker Compose
       community.docker.docker_compose_v2:
         project_src: "{{ project_src_path }}/nginx"

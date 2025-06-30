@@ -5,17 +5,7 @@ services:
       - {{ project_src_path }}/file/:/usr/share/nginx/html/file/:ro
     ports:
       - "8080:8080"
-    networks:
-      - {{ network }}
+
     deploy:
       replicas: {{ nginx_server_count }}
-      resources:
-        limits:
-          cpus: "0.50"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
-networks:
-  {{ network }}:
-    external: true
+

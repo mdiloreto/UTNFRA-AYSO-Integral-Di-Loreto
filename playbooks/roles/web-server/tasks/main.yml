@@ -32,6 +32,8 @@
     sudo dnf -y install dnf-plugins-core
     sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
     sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+    sudo dnf install docker-compose -y
+    sudo dnf install docker-switch -y
     sudo systemctl enable --now docker
     sudo usermod -aG docker vagrant
     sudo systemctl restart docker
@@ -46,9 +48,23 @@
     mode: '0755'
   when: ansible_os_family == "RedHat"
 
-- name: Reiniciar Docker en Fedora
-  ansible.builtin.shell: systemctl restart docker
+- name: Crear directorio para data-root de Docker en Fedora
+  ansible.builtin.shell: |
+    mkdir -p /work/dockerdata
+    chown root:root /work/dockerdata
+    chmod 0711 /work/dockerdata
   when: ansible_os_family == "RedHat"
+
+- name: Configurar data-root de Docker en Fedora
+  ansible.builtin.shell: |
+    cat > /etc/docker/daemon.json <<EOF
+    {
+      "data-root": "/work/dockerdata"
+    }
+    EOF
+
+- name: Reiniciar Docker
+  ansible.builtin.shell: systemctl restart docker
 
 - name: Verificar que docker compose funcione
   command: docker-compose version
