@@ -62,6 +62,23 @@
       "data-root": "/work/dockerdata"
     }
     EOF
+  when: ansible_os_family == "RedHat"
+
+- name: Crear directorio para data-root de Docker en Ubuntu
+  ansible.builtin.shell: |
+    mkdir -p /work/dockerdata
+    chown root:root /work/dockerdata
+    chmod 0711 /work/dockerdata
+  when: ansible_os_family == "Debian"
+
+- name: Configurar data-root de Docker en Ubuntu
+  ansible.builtin.shell: |
+    cat > /etc/docker/daemon.json <<EOF
+    {
+      "data-root": "/work/dockerdata"
+    }
+    EOF
+  when: ansible_os_family == "Debian"
 
 - name: Reiniciar Docker
   ansible.builtin.shell: systemctl restart docker
